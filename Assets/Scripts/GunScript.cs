@@ -5,14 +5,19 @@ using UnityEngine;
 public class GunScript : MonoBehaviour
 {
     public Transform muzzel, LeftHand,RightHand,LeftElbow,RightElbow,LookObj;
-    public float  roundsPerSecond, bulletsInTheGun,bulletImpulse;
-    private float waitTillNextFire;
+
+	public float roundsPerSecond, bulletsInTheGun, bulletImpulse, magazine_size,total_bullets;
+  
 	public bool reloading;
+
 	public GameObject bullet;
 	public GameObject flash;	
+
 	public bool shooting;
 	public Transform lookat;
-	float offset;
+
+	private float waitTillNextFire;
+	 private float offset;
 	void Start()
     {
 		reloading = false;
@@ -59,20 +64,13 @@ public class GunScript : MonoBehaviour
 					print("Missing the bullet prefab");
 			}
 
-			else
-
-			if( Input.GetKeyDown(KeyCode.R)||bulletsInTheGun<=0)
-			{
-				Reload();
-			}
-				
-
 		}
 		
 	}
 	public void Reload()
 	{
-
+		total_bullets -= magazine_size - bulletsInTheGun;
+		bulletsInTheGun = magazine_size;
 	}
 
 

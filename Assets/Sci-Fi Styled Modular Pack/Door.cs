@@ -9,7 +9,7 @@ public class Door : MonoBehaviour
     public bool open;
     void Start()
     {
-        player = GameObject.Find("Player");
+        player = GameObject.FindGameObjectWithTag("Player");
         open = false;
         animator = GetComponent<Animator>();
     }

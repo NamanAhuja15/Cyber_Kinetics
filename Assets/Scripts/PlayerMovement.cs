@@ -50,7 +50,7 @@ namespace Player_Scripts
         float _footstepDelay;
         AudioSource _audioSource;
         float footstep_et = 0;
-        public GameObject gun;
+        public GunScript gun;
         private GunInventory guninventory;
         // Use this for initialization
         void Start()
@@ -77,7 +77,7 @@ namespace Player_Scripts
         void HandleGunControls()
         {
             if (gun == null)
-                gun = guninventory.gun_new;
+                gun = guninventory.gun_new.GetComponent<GunScript>();
             if (Input.GetMouseButton(1))
             {
                 Aim = true;
@@ -89,17 +89,20 @@ namespace Player_Scripts
             if (Input.GetMouseButton(0))
             {
                 Shoot = true;
-                gun.GetComponent<GunScript>().ShootMethod();
+                gun.ShootMethod();
             }
             else
                 Shoot = false;
-            if(Input.GetKeyDown(KeyCode.R))
-            {
 
+
+            if(Input.GetKeyDown(KeyCode.R)||gun.bulletsInTheGun==0)
+            {
+                gun.Reload();
+                CharacterAnimator.SetTrigger("Reload");
             }
 
 
-            gun.GetComponent<GunScript>().shooting = Shoot;
+            gun.shooting = Shoot;
 
 
         }
