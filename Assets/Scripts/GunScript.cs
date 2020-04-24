@@ -18,11 +18,13 @@ public class GunScript : MonoBehaviour
 
 	private float waitTillNextFire;
 	 private float offset;
+	private GameObject aim_control;
 	void Start()
     {
 		reloading = false;
 		shooting = false;
 		flash.SetActive(false);
+		aim_control = GameObject.FindGameObjectWithTag("Fire");
 	}
 
     // Update is called once per frame
@@ -30,6 +32,7 @@ public class GunScript : MonoBehaviour
     {
 		waitTillNextFire -= roundsPerSecond * Time.deltaTime;
 		transform.LookAt(lookat);
+	
 		if (shooting)
 			flash.SetActive(true);
 		else
@@ -53,7 +56,7 @@ public class GunScript : MonoBehaviour
 					GameObject bullet_ = Instantiate(bullet, muzzel.transform.position, muzzel.transform.rotation) as GameObject;
 					Rigidbody bulletRigidbody = bullet_.GetComponent<Rigidbody>();
 
-					Vector3 direction = (muzzel.forward).normalized;
+					Vector3 direction = (muzzel.transform.forward).normalized;
 					bullet_.GetComponent<BulletScript>().direction = direction;
 					bulletRigidbody.AddForce(direction * bulletImpulse, ForceMode.Impulse);
 					waitTillNextFire = 1;
