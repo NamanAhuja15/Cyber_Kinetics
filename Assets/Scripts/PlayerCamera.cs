@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace EasySurvivalScripts
-{
+namespace Player_Scripts
+{ 
     public enum CameraPerspective
     {
         FirstPerson,
         ThirdPerson
     }
 
-    public class PlayerCamera : Mirror.NetworkBehaviour
+    public class PlayerCamera : MonoBehaviour
     {
 
         [Header("Input Settings")]

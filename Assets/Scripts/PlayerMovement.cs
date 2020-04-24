@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 
-namespace EasySurvivalScripts
+namespace Player_Scripts
 {
     public enum PlayerStates
     {
