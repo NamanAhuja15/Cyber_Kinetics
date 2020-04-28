@@ -38,7 +38,7 @@ namespace Player_Scripts
         Vector3 camMoveLoc,offset;
         Transform _fpsCameraHelper;
         Transform _tpsCameraHelper;
-        public GameObject head,Gun,Chest;
+        public GameObject head;
         private void Awake()
         {
            // Cursor.lockState = CursorLockMode.Locked;

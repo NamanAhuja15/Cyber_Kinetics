@@ -5,16 +5,27 @@ using UnityEngine.UI;
 public class Crosshair : MonoBehaviour
 {
     // Start is called before the first frame update
-   public GameObject crosshair;
+   public Image crosshair;
+    private Ray ray;
+    private RaycastHit hit;
     void Start()
     {
-        crosshair = GameObject.FindGameObjectWithTag("Crosshair");
+        crosshair = GameObject.FindGameObjectWithTag("Crosshair").GetComponent<Image>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(crosshair)
-        crosshair.transform.position = Camera.main.WorldToScreenPoint(this.gameObject.transform.position);
+        if (crosshair)
+        {
+            ray = Camera.main.ScreenPointToRay(crosshair.transform.position);
+            if (Physics.Raycast(ray, out hit))
+            {
+                if (hit.collider.gameObject)
+                {
+                    transform.position = hit.point;
+                }
+            }
+        }
     }
 }

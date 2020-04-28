@@ -47,7 +47,7 @@ namespace Player_Scripts
 
         private CharacterController characterController;
         private  AudioSource _audioSource;
-        private float footstep_et = 0,time, _footstepDelay;
+        private float footstep_et = 0,time, _footstepDelay,dummy;
         private GunScript gun;
         private GunInventory guninventory;
         private IKControl ik;
@@ -67,7 +67,7 @@ namespace Player_Scripts
             //handle controller
            // if (isLocalPlayer)
             {
-
+                SetAnimation();
                 HandlePlayerControls();
                HandleGunControls();
                 time += Time.deltaTime;
@@ -75,7 +75,7 @@ namespace Player_Scripts
                 {
                     ik.Holding_gun = true;
                 }
-               // PlayFootstepSounds();
+
             }
         }
 
@@ -88,16 +88,15 @@ namespace Player_Scripts
             {
                 Aim = true;
             }
-            else
+            else if(Input.GetMouseButtonUp(1))
             {
                 Aim = false;
             }
             if (Input.GetMouseButton(0))
             {
                 Shoot = true;
-                gun.ShootMethod();
             }
-            else
+            else if(Input.GetMouseButtonUp(0))
                 Shoot = false;
 
 
@@ -120,22 +119,23 @@ namespace Player_Scripts
         float vInput = Input.GetAxisRaw(VerticalInput);
         Vector3 fwdMovement = characterController.isGrounded == true ? transform.forward * vInput : Vector3.zero;
         Vector3 rightMovement = characterController.isGrounded == true ? transform.right * hInput : Vector3.zero;
-        float dummy = 0f;
+         dummy = 0f;
 
 
         float _speed = Input.GetButton(RunInput) ? runSpeed : walkSpeed;
         bool run = _speed == runSpeed ? true : false;
         characterController.SimpleMove(Vector3.ClampMagnitude(fwdMovement + rightMovement, 1f) * _speed);
 
-        if (new Vector2(hInput, vInput).sqrMagnitude > 0.5f)
-        {
-            if (run)
-                dummy = 1f;
+            if (new Vector2(hInput, vInput).sqrMagnitude > 0.1f)
+            {
+                if (run)
+                    dummy = 1f;
+                else
+                    dummy = 0.5f;
+
+            }
             else
-                dummy = 0.5f;
-
-        }
-
+                dummy = 0f;
         if (characterController.isGrounded)
             JumpAnimation = false;
 
@@ -153,22 +153,7 @@ namespace Player_Scripts
             {
                 Crouch = false;
             }
-        if (!Aim&&!Shoot)
-        {
-            CharacterAnimator.SetFloat("Blend", dummy);
-        }
-        else 
-        {
-            CharacterAnimator.SetFloat("Aim_Float", dummy);
-        }
-        if(Crouch)
-            {
-                CharacterAnimator.SetFloat("Crouch_speed", dummy);
-            }
-            CharacterAnimator.SetBool("Jump", JumpAnimation);
-            CharacterAnimator.SetBool("Aiming", Aim);
-            CharacterAnimator.SetBool("Shooting", Shoot);
-            CharacterAnimator.SetBool("Crouching", Crouch);
+
         }
 
     IEnumerator PerformJumpRoutine()
@@ -205,8 +190,27 @@ namespace Player_Scripts
         return retVal;
     }
 
+        public void SetAnimation()
+        {
 
-    void PlayFootstepSounds()
+            CharacterAnimator.SetBool("Jump", JumpAnimation);
+            CharacterAnimator.SetBool("Aiming", Aim);
+            CharacterAnimator.SetBool("Shooting", Shoot);
+            CharacterAnimator.SetBool("Crouching", Crouch);
+
+            CharacterAnimator.SetFloat("Blend", dummy);
+            CharacterAnimator.SetFloat("Aim_Float", dummy);
+            CharacterAnimator.SetFloat("Crouch_speed", dummy);
+            if (CharacterAnimator.GetFloat("Aim_Float") > 0.1f)
+                Aim = true;
+            if (CharacterAnimator.GetFloat("Aim_Float") < 0.1f)
+            {
+                Aim = false;
+            }
+
+
+        }
+        void PlayFootstepSounds()
     {
         if (playerStates == PlayerStates.Idle || playerStates == PlayerStates.Jumping)
             return;
