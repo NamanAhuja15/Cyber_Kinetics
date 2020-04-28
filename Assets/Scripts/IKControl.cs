@@ -20,6 +20,7 @@ namespace Player_Scripts
         private Transform lookObj = null;
         private GunScript item;
         private Animator animator;
+        public bool Holding_gun;
 
         void Start()
         {
@@ -82,14 +83,16 @@ namespace Player_Scripts
         }
         private void Update()
         {
+            Hold_Gun();
+        }
+        public void Hold_Gun()
+        {
             item = this.gameObject.GetComponent<GunInventory>().gun_new.GetComponent<GunScript>();
             leftElbowObj = item.LeftElbow;
             rightElbowObj = item.RightElbow;
             rightHandObj = item.RightHand;
             leftHandObj = item.LeftHand;
             item.lookat = lookObj;
-
         }
-
     }
 }

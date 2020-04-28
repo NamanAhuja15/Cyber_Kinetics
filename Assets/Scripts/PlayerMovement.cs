@@ -38,26 +38,27 @@ namespace Player_Scripts
         public float VertAnimation;
         public bool JumpAnimation;
         public bool LandAnimation;
-        public bool Aim, Shoot;
+        public bool Aim, Shoot,Crouch;
 
 
         public List<AudioClip> FootstepSounds;
         public List<AudioClip> JumpSounds;
         public List<AudioClip> LandSounds;
 
-        CharacterController characterController;
-
-        float _footstepDelay;
-        AudioSource _audioSource;
-        float footstep_et = 0;
-        public GunScript gun;
+        private CharacterController characterController;
+        private  AudioSource _audioSource;
+        private float footstep_et = 0,time, _footstepDelay;
+        private GunScript gun;
         private GunInventory guninventory;
+        private IKControl ik;
         // Use this for initialization
         void Start()
         {
             characterController = GetComponent<CharacterController>();
             _audioSource = gameObject.AddComponent<AudioSource>();
             guninventory = gameObject.GetComponent<GunInventory>();
+            ik = gameObject.GetComponent<IKControl>();
+            time = 0f;
         }
 
         // Update is called once per frame
@@ -69,7 +70,12 @@ namespace Player_Scripts
 
                 HandlePlayerControls();
                HandleGunControls();
-                PlayFootstepSounds();
+                time += Time.deltaTime;
+                if(time>1f)
+                {
+                    ik.Holding_gun = true;
+                }
+               // PlayFootstepSounds();
             }
         }
 
@@ -99,6 +105,8 @@ namespace Player_Scripts
             {
                 gun.Reload();
                 CharacterAnimator.SetTrigger("Reload");
+                ik.Holding_gun = false;
+                time = 0f;
             }
 
 
@@ -136,6 +144,15 @@ namespace Player_Scripts
             StartCoroutine(PerformJumpRoutine());
             JumpAnimation = true;
         }
+        if(Input.GetKey(KeyCode.C))
+            {
+                Crouch = true;
+
+            }
+        if(Input.GetKeyUp(KeyCode.C))
+            {
+                Crouch = false;
+            }
         if (!Aim&&!Shoot)
         {
             CharacterAnimator.SetFloat("Blend", dummy);
@@ -144,10 +161,14 @@ namespace Player_Scripts
         {
             CharacterAnimator.SetFloat("Aim_Float", dummy);
         }
-
+        if(Crouch)
+            {
+                CharacterAnimator.SetFloat("Crouch_speed", dummy);
+            }
             CharacterAnimator.SetBool("Jump", JumpAnimation);
             CharacterAnimator.SetBool("Aiming", Aim);
             CharacterAnimator.SetBool("Shooting", Shoot);
+            CharacterAnimator.SetBool("Crouching", Crouch);
         }
 
     IEnumerator PerformJumpRoutine()
@@ -183,6 +204,7 @@ namespace Player_Scripts
 
         return retVal;
     }
+
 
     void PlayFootstepSounds()
     {

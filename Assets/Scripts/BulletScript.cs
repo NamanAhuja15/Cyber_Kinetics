@@ -4,7 +4,7 @@ using System.Collections;
 public class BulletScript : MonoBehaviour {
 
 
-	public float maxDistance = 1000;
+	public float maxDistance = 1;
 	private Vector3 Direction,Hitpoint;
 	RaycastHit hit;
 
@@ -39,7 +39,7 @@ public class BulletScript : MonoBehaviour {
 				}
 				
 			}		
-			Destroy(gameObject);
+		
 		}
 		Destroy(gameObject, 5f);
 	}
