@@ -75,8 +75,10 @@ public class GunScript : MonoBehaviour
 		{
 			shooting = false;
 			beaming = false;
-			StopBeam();
+			
 		}
+		if(!beaming)
+			StopBeam();
 
 		if (weapon == WeaponType.Rifle)
 		{
@@ -126,6 +128,7 @@ public class GunScript : MonoBehaviour
 	public void BeamShootMethod()
 	{
 		beamHeat += Time.deltaTime;
+		Debug.Log(beamHeat);
 		int reflections = 0;
 		List<Vector3> reflectionPoints = new List<Vector3>();
 		reflectionPoints.Add(raycastStartSpot.position);
@@ -133,7 +136,7 @@ public class GunScript : MonoBehaviour
 		Vector3 incomingDirection;
 		Vector3 reflectDirection;
 		bool keepReflecting = true;
-		Ray ray = new Ray(lastPoint, raycastStartSpot.forward);
+		Ray ray = new Ray(lastPoint, hit_dir - raycastStartSpot.position);
 		RaycastHit beamhit;
 		if (beamGO == null)
 		{

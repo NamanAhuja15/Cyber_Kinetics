@@ -4,9 +4,8 @@ using System.Collections;
 public class BulletScript : MonoBehaviour {
 
 
-	public float maxDistance = 1;
-	private Vector3 Direction,Hitpoint;
-	RaycastHit hit;
+	public float maxDistance;
+	 private RaycastHit hit;
 
 	public GameObject decalHitWall;
 
@@ -29,9 +28,9 @@ public class BulletScript : MonoBehaviour {
 		
 		if (Physics.Raycast(transform.position, direction,out hit, maxDistance, ~ignoreLayer)){
 			if(decalHitWall){
-				if(hit.transform.tag == "Level"){
+					if(hit.collider.gameObject.transform.tag == "Level")
+				{
 					Instantiate(decalHitWall, hit.point + hit.normal * floatInfrontOfWall, Quaternion.LookRotation(hit.normal));
-					Destroy(gameObject);
 				}
 				if(hit.transform.tag == "Dummie"){
 					Instantiate(bloodEffect, hit.point, Quaternion.LookRotation(hit.normal));
@@ -41,7 +40,8 @@ public class BulletScript : MonoBehaviour {
 			}		
 		
 		}
-		Destroy(gameObject, 5f);
+		Destroy(gameObject, 2.5f);
 	}
+
 
 }
