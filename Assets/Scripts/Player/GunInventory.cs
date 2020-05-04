@@ -67,7 +67,7 @@ public class GunInventory : MonoBehaviourPunCallbacks
     {
         if (selected_gun.GetComponent<GunScript>())
         {
-          var gun= Instantiate(selected_gun, gun_pos.position,gun_pos.rotation);
+            var gun= PhotonNetwork.Instantiate(selected_gun.name,gun_pos.position, gun_pos.rotation, 0);
             gun.transform.parent = gun_pos;
             gun_new = gun;
         }

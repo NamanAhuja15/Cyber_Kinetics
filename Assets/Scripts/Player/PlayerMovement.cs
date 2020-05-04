@@ -41,9 +41,9 @@ using Photon.Pun;
         public List<AudioClip> JumpSounds;
         public List<AudioClip> LandSounds;
 
+        private AudioManager audioManager;
         private CharacterController characterController;
-        private  AudioSource _audioSource;
-        private float footstep_et = 0,time, _footstepDelay,dummy;
+        private float time,dummy;
         private GunScript gun;
         private GunInventory guninventory;
         private IKControl ik;
@@ -54,19 +54,19 @@ using Photon.Pun;
         void Start()
         {
             characterController = GetComponent<CharacterController>();
-            _audioSource = gameObject.AddComponent<AudioSource>();
             guninventory = gameObject.GetComponent<GunInventory>();
             ik = gameObject.GetComponent<IKControl>();
+           audioManager = gameObject.GetComponent<AudioManager>();
             time = 0f;
             if (photonView.IsMine)
             {
-                MoveToLayer(this.gameObject, LayerMask.NameToLayer("Hidden"));
                 // Set other player's nametag target to this player's nametag transform.
                 GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
                 foreach (GameObject player in players)
                 {
-                    player.GetComponentInChildren<NameTag>().target = nameTag.transform;
+                   // player.GetComponentInChildren<NameTag>().target = nameTag.transform;
                 }
+            MoveToLayer(this.gameObject, 9);
             }
             else
             {
@@ -78,11 +78,12 @@ using Photon.Pun;
                 {
                     if (player != gameObject)
                     {
-                        nameTag.target = player.GetComponentInChildren<NameTag>().target;
-                        break;
+                      //  nameTag.target = player.GetComponentInChildren<NameTag>().target;
+                     //   break;
                     }
                 }
-            }
+            MoveToLayer(this.gameObject, 8);
+        }
         }
     void MoveToLayer(GameObject gameObject, int layer)
     {
@@ -97,12 +98,12 @@ using Photon.Pun;
     // Update is called once per frame
     void Update()
         {
-
         if (photonView.IsMine)
             {
             SetAnimation();
             HandleGunControls();
                 time += Time.deltaTime;
+
                 if(time>1f)
                 {
                     ik.Holding_gun = true;
@@ -129,13 +130,14 @@ using Photon.Pun;
             {
                 Aim = false;
             }
-            if (Input.GetMouseButton(0))
-            {
-                Shoot = true;
-            }
-            else if(Input.GetMouseButtonUp(0))
-                Shoot = false;
-
+        if (Input.GetMouseButton(0))
+        {
+            Shoot = true;
+        }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            Shoot = false;
+        }
 
             if(Input.GetKeyDown(KeyCode.R)||gun.bulletsInTheGun==0)
             {
@@ -162,19 +164,32 @@ using Photon.Pun;
         float _speed = Input.GetButton(RunInput) ? runSpeed : walkSpeed;
         bool run = _speed == runSpeed ? true : false;
         characterController.SimpleMove(Vector3.ClampMagnitude(fwdMovement + rightMovement, 1f) * _speed);
-
+        if (characterController.isGrounded)
+        {
             if (new Vector2(hInput, vInput).sqrMagnitude > 0.5f)
+        {
+            if (run)
             {
-                if (run)
-                    dummy = 1f;
-                else
-                    dummy = 0.5f;
-
+                audioManager.Walk(0.5f);
+                dummy = 1f;
             }
             else
-                dummy = 0f;
-        if (characterController.isGrounded)
-            JumpAnimation = false;
+            {
+                audioManager.Walk(1f);
+                dummy = 0.5f;
+            }
+        }
+        else
+        {
+            dummy = 0f;
+        }
+
+            if (JumpAnimation)
+            {
+                audioManager.Land();
+                JumpAnimation = false;
+            }
+        }
 
         if (Input.GetButtonDown(JumpInput) && characterController.isGrounded)
         {
@@ -195,12 +210,8 @@ using Photon.Pun;
 
     IEnumerator PerformJumpRoutine()
     {
-        //play jump sound
-        //     if (_audioSource)
-        //   _audioSource.PlayOneShot(JumpSounds[Random.Range(0, JumpSounds.Count)]);
-
+        audioManager.Jump();
         float _jump = JumpForce;
-
         do
         {
             characterController.Move(Vector3.up * _jump * Time.deltaTime);
@@ -209,10 +220,7 @@ using Photon.Pun;
         }
         while (!characterController.isGrounded);
 
-        //play land sound
-        if (_audioSource)
-            _audioSource.PlayOneShot(LandSounds[Random.Range(0, LandSounds.Count)]);
-
+       
     }
 
 

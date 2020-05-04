@@ -29,7 +29,7 @@
 
         void OnAnimatorIK(int layerIndex)
         {
-
+        layerIndex = 1;
             if (ikActive)
             {
 

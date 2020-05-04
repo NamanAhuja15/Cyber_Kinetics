@@ -16,11 +16,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
     private int startingHealth = 100;
     [SerializeField]
     private float respawnTime = 8.0f;
-    [SerializeField]
-    private AudioClip deathClip;
-    [SerializeField]
-    private AudioClip hurtClip;
-    private AudioSource playerAudio;
+    private AudioManager playerAudio;
     [SerializeField]
     private float flashSpeed = 2f;
     [SerializeField]
@@ -46,16 +42,11 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
         damageImage = GameObject.FindGameObjectWithTag("Screen").transform.Find("DamageImage").GetComponent<Image>();
         healthSlider = GameObject.FindGameObjectWithTag("Screen").GetComponentInChildren<Slider>();
         animator = GetComponent<Animator>();
-        playerAudio = GetComponent<AudioSource>();
+        playerAudio = GetComponent<AudioManager>();
         currentHealth = startingHealth;
         if (photonView.IsMine)
         {
-            gameObject.layer = LayerMask.NameToLayer("LocalPlayer");
             healthSlider.value = currentHealth;
-        }
-        else
-        {
-            gameObject.layer = LayerMask.NameToLayer("Player");
         }
         damaged = false;
         isDead = false;
@@ -97,8 +88,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
             healthSlider.value = currentHealth;
             animator.SetTrigger("IsHurt");
         }
-        playerAudio.clip = hurtClip;
-        playerAudio.Play();
+        playerAudio.Hurt();
     }
 
     /// <summary>
@@ -118,8 +108,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
             RespawnEvent(respawnTime);
             StartCoroutine("DestoryPlayer", respawnTime);
         }
-        playerAudio.clip = deathClip;
-        playerAudio.Play();
+        playerAudio.Hurt();
     }
 
     /// <summary>

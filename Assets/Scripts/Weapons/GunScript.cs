@@ -37,9 +37,9 @@ public class GunScript : MonoBehaviourPunCallbacks, IPunObservable
 	public float endBeamWidth = 1.0f;
 	public Transform raycastStartSpot;
 
-
+	private string Shooter;
+	private GunAudio gunAudio;
 	private GunInventory inventory;
-	public AudioSource audioSource;
 	private Vector3 Position;
 	private Quaternion Rotation;
 	void Start()
@@ -48,6 +48,8 @@ public class GunScript : MonoBehaviourPunCallbacks, IPunObservable
 		shooting = false;
 		flash.SetActive(false);
 		inventory = GetComponentInParent<GunInventory>();
+		Shooter = photonView.Owner.NickName;
+		gunAudio = GetComponent<GunAudio>();
 		crosshair = inventory.crosshair;
 		raycastStartSpot = muzzle;
 	}
@@ -62,14 +64,16 @@ public class GunScript : MonoBehaviourPunCallbacks, IPunObservable
 			{
 				if (weapon == WeaponType.Rifle)
 				{
-					RifleShootMethod();
-					//photonView.RPC("RifleShootMethod", RpcTarget.All);
+					//RifleShootMethod();
+
+					photonView.RPC("RifleShootMethod", RpcTarget.All);
 					waitTillNextFire -= roundsPerSecond * Time.deltaTime;
 				}
 				else if (weapon == WeaponType.Beam && beamHeat <= maxBeamHeat && !coolingDown)
 				{
-					BeamShootMethod();
-					//photonView.RPC("BeamShootMethod", RpcTarget.All);
+
+					//BeamShootMethod();
+					photonView.RPC("BeamShootMethod", RpcTarget.All);
 					if (beamHeat >= maxBeamHeat)
 					{
 						coolingDown = true;
@@ -84,19 +88,20 @@ public class GunScript : MonoBehaviourPunCallbacks, IPunObservable
 			{
 				shooting = false;
 				beaming = false;
-
+				
 			}
 			if (!beaming && weapon == WeaponType.Beam)
-			{
-				StopBeam();
-			//	photonView.RPC("StopBeam", RpcTarget.All);
+			{ 
+				photonView.RPC("StopBeam", RpcTarget.All);
 			}
 			if (weapon == WeaponType.Rifle)
 			{
 				if (shooting)
 					flash.SetActive(true);
 				else if (!shooting)
+				{
 					flash.SetActive(false);
+				}
 			}
 
 			ray = Camera.main.ScreenPointToRay(crosshair.transform.position);
@@ -123,13 +128,16 @@ public class GunScript : MonoBehaviourPunCallbacks, IPunObservable
 				shooting = true;
 				if (bullet)
 				{
+					gunAudio.Fire();
 					GameObject bullet_ = Instantiate(bullet, muzzle.transform.position, muzzle.transform.rotation) as GameObject;
 					Rigidbody bulletRigidbody = bullet_.GetComponent<Rigidbody>();
 					Vector3 direction = hit_dir - muzzle.transform.position ;
 					bullet_.GetComponent<BulletScript>().direction = direction;
+					bullet_.GetComponent<BulletScript>().Shooter=Shooter;
 					bulletRigidbody.AddForce(direction * bulletImpulse, ForceMode.Impulse);
 					waitTillNextFire = 1;
 					bulletsInTheGun -= 1;
+					
 				}
 				else
 					print("Missing the bullet prefab");
@@ -141,6 +149,7 @@ public class GunScript : MonoBehaviourPunCallbacks, IPunObservable
 	[PunRPC]
 	public void BeamShootMethod()
 	{
+		gunAudio.Fire();
 		beamHeat += Time.deltaTime;
 		int reflections = 0;
 		List<Vector3> reflectionPoints = new List<Vector3>();
@@ -211,7 +220,7 @@ public class GunScript : MonoBehaviourPunCallbacks, IPunObservable
 		}
 		beaming = true;
 	}
-
+	[PunRPC]
 	public void StopBeam()
 	{
 		beamHeat -= Time.deltaTime;
@@ -228,6 +237,7 @@ public class GunScript : MonoBehaviourPunCallbacks, IPunObservable
 
 	public void Reload()
 	{
+		gunAudio.Reload();
 		total_bullets -= magazine_size - bulletsInTheGun;
 		bulletsInTheGun = magazine_size;
 	}

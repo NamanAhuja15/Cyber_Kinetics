@@ -69,6 +69,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     /// <param name="cause">DisconnectCause data associated with this disconnect.</param>
     public override void OnDisconnected(DisconnectCause cause)
     {
+        if(connectionText!=null)
         connectionText.text = cause.ToString();
     }
 
@@ -110,7 +111,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         RoomOptions roomOptions = new RoomOptions()
         {
             IsVisible = true,
-            MaxPlayers = 8
+            MaxPlayers = 4
         };
         if (PhotonNetwork.IsConnectedAndReady)
         {
