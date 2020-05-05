@@ -2,17 +2,17 @@
 using System.Collections;
 using Photon.Pun;
 
-public class BulletScript :MonoBehaviourPunCallbacks  {
+public class BulletScript :MonoBehaviour  {
 
 
 
 	 private RaycastHit hit;
-	private BulletAudio source;
 	public GameObject decalHitWall;
 
 	public float floatInfrontOfWall;
-	public float damage;
+	public int damage;
 	public string Shooter;
+	public GameObject[] hitEffects;
 	public GameObject[] bloodEffects;
 	public LayerMask ignoreLayer;
 	public Vector3 direction;
@@ -24,7 +24,6 @@ public class BulletScript :MonoBehaviourPunCallbacks  {
 	*/
 	void Start()
 	{
-		source = GetComponent<BulletAudio>();
 	}
 	void Update () {
 		
@@ -34,18 +33,17 @@ public class BulletScript :MonoBehaviourPunCallbacks  {
 			{
 				case "Player":
 					{
-						Instantiate(bloodEffects[Random.Range(0,bloodEffects.Length-1)], hit.point, Quaternion.LookRotation(hit.normal));
-					hit.transform.gameObject.GetComponent<PhotonView>().RPC("TakeDamage", RpcTarget.All, damage, Shooter);
-						source.Player();
-						Destroy(gameObject,0.5f);
+						PhotonNetwork.Instantiate(bloodEffects[Random.Range(0,bloodEffects.Length-1)].name, hit.point, Quaternion.LookRotation(hit.normal));
+						if(hit.transform.gameObject.layer!=LayerMask.GetMask("Player"))
+					hit.transform.gameObject.GetComponent<PhotonView>().RPC("TakeDamage", RpcTarget.All, damage, PhotonNetwork.LocalPlayer.NickName);
+						Destroy(gameObject);
 						break;
 					}
 				default:
 					if (decalHitWall)
 					{
 							Instantiate(decalHitWall, hit.point + hit.normal * floatInfrontOfWall, Quaternion.LookRotation(hit.normal));
-						source.Terrain(1);
-						Destroy(gameObject,0.5f);
+						Destroy(gameObject);
 					}
 					break;
 			}		

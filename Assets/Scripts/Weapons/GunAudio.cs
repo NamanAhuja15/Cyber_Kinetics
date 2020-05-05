@@ -24,7 +24,11 @@ public class GunAudio : MonoBehaviour
     }
     public void Reload()
     {
-        audioSource.PlayOneShot(Reloading);
+        if (time > fire_delay)
+        {
+            audioSource.PlayOneShot(Reloading);
+            time = 0f;
+        }
     }
     // Update is called once per frame
     void Update()

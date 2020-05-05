@@ -24,12 +24,10 @@
         void Start()
         {
             animator = GetComponent<Animator>();
-
         }
 
         void OnAnimatorIK(int layerIndex)
         {
-        layerIndex = 1;
             if (ikActive)
             {
 
@@ -84,7 +82,9 @@
         {
             Hold_Gun();
         }
-        public void Hold_Gun()
+    public void Hold_Gun()
+    {
+        if (this.gameObject.GetComponent<GunInventory>().gun_new != null)
         {
             item = this.gameObject.GetComponent<GunInventory>().gun_new.GetComponent<GunScript>();
             leftElbowObj = item.LeftElbow;
@@ -93,5 +93,6 @@
             leftHandObj = item.LeftHand;
             item.lookat = lookObj;
         }
+    }
     }
 

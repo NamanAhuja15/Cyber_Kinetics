@@ -1,16 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-namespace Player_Scripts
-{ 
+using Photon.Pun;
     public enum CameraPerspective
     {
         FirstPerson,
         ThirdPerson
     }
 
-    public class PlayerCamera : MonoBehaviour
+    public class PlayerCamera : MonoBehaviourPunCallbacks  
     {
 
         [Header("Input Settings")]
@@ -33,28 +31,32 @@ namespace Player_Scripts
         public Vector3 TPS_CameraOffset;
         public Vector2 TPS_MinMaxAngles;
 
+
+    private Vector3 position;
+    private Quaternion rotation;
         public Transform FPSController;
-        float xClamp;
-        Vector3 camMoveLoc,offset;
+       private float xClamp;
+        private Vector3 camMoveLoc,offset;
         Transform _fpsCameraHelper;
         Transform _tpsCameraHelper;
         public GameObject head;
-        private void Awake()
-        {
-           // Cursor.lockState = CursorLockMode.Locked;
+    private void Awake()
+    {
             xClamp = 0;
-            FPSController = GetComponentInParent<PlayerMovement>().transform;
-        }
+            FPSController = GetComponentInParent<PlayerMovement>().transform;    
+    }
 
-        // Use this for initialization
-        void Start()
-        {
+    // Use this for initialization
+    void Start()
+    {
+
             if (CharacterAnimator)
             {
                 Add_FPSCamPositionHelper();
                 Add_TPSCamPositionHelper();
             }
-        }
+        
+    }
 
         void Add_FPSCamPositionHelper()
         {
@@ -73,16 +75,15 @@ namespace Player_Scripts
             _tpsCameraHelper.localPosition = Vector3.zero;
         }
 
-        // Update is called once per frame
-        void Update()
-        {
+    // Update is called once per frame
+    void Update()
+    {
             SwitchCameraPerspectiveInput();
 
             GetSetPerspective();
 
-            RotateCamera();
-
-        }
+            RotateCamera();    
+    }
 
         void SwitchCameraPerspectiveInput()
         {
@@ -161,13 +162,13 @@ namespace Player_Scripts
             // else
             // Cursor.lockState = CursorLockMode.None;
         }
-       // bool locked()
-       // {
+    // bool locked()
+    // {
 
 
-        
-      //  }
-        private void OnDrawGizmosSelected()
+
+    //  }
+    private void OnDrawGizmosSelected()
         {
             if (_fpsCameraHelper)
                 Gizmos.DrawWireSphere(_fpsCameraHelper.position, 0.1f);
@@ -178,4 +179,3 @@ namespace Player_Scripts
                 Gizmos.DrawWireSphere(_tpsCameraHelper.position, 0.1f);
         }
     }
-}

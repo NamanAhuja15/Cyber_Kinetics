@@ -31,6 +31,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
     private int currentHealth;
     private bool isDead;
     private bool damaged;
+    public Image crosshair;
 
     /// <summary>
     /// Start is called on the frame when a script is enabled just before
@@ -38,8 +39,9 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
     /// </summary>
     void Start()
     {
-        ikControl = GetComponentInChildren<IKControl>();
+        ikControl = GetComponent<IKControl>();
         damageImage = GameObject.FindGameObjectWithTag("Screen").transform.Find("DamageImage").GetComponent<Image>();
+        crosshair = GameObject.FindGameObjectWithTag("Screen").transform.Find("Crosshair").GetComponent<Image>();
         healthSlider = GameObject.FindGameObjectWithTag("Screen").GetComponentInChildren<Slider>();
         animator = GetComponent<Animator>();
         playerAudio = GetComponent<AudioManager>();
@@ -47,6 +49,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
         if (photonView.IsMine)
         {
             healthSlider.value = currentHealth;
+            healthSlider.GetComponentInChildren<Text>().text = currentHealth.ToString() + "/100";
         }
         damaged = false;
         isDead = false;
@@ -86,6 +89,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
                 photonView.RPC("Death", RpcTarget.All, enemyName);
             }
             healthSlider.value = currentHealth;
+            healthSlider.GetComponentInChildren<Text>().text = currentHealth.ToString() + "/100";
             animator.SetTrigger("IsHurt");
         }
         playerAudio.Hurt();

@@ -12,7 +12,7 @@ using Photon.Pun;
         Jumping
     }
 
-    public class PlayerMovement : MonoBehaviourPunCallbacks, IPunObservable
+    public class PlayerMovement : MonoBehaviour
 {
         public PlayerStates playerStates;
 
@@ -47,9 +47,6 @@ using Photon.Pun;
         private GunScript gun;
         private GunInventory guninventory;
         private IKControl ik;
-        private NameTag nameTag;
-        private Vector3 position;
-        private Quaternion rotation;
         // Use this for initialization
         void Start()
         {
@@ -58,32 +55,6 @@ using Photon.Pun;
             ik = gameObject.GetComponent<IKControl>();
            audioManager = gameObject.GetComponent<AudioManager>();
             time = 0f;
-            if (photonView.IsMine)
-            {
-                // Set other player's nametag target to this player's nametag transform.
-                GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-                foreach (GameObject player in players)
-                {
-                   // player.GetComponentInChildren<NameTag>().target = nameTag.transform;
-                }
-            MoveToLayer(this.gameObject, 9);
-            }
-            else
-            {
-                position = transform.position;
-                rotation = transform.rotation;
-                // Set this player's nametag target to other players's target.
-                GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-                foreach (GameObject player in players)
-                {
-                    if (player != gameObject)
-                    {
-                      //  nameTag.target = player.GetComponentInChildren<NameTag>().target;
-                     //   break;
-                    }
-                }
-            MoveToLayer(this.gameObject, 8);
-        }
         }
     void MoveToLayer(GameObject gameObject, int layer)
     {
@@ -98,27 +69,23 @@ using Photon.Pun;
     // Update is called once per frame
     void Update()
         {
-        if (photonView.IsMine)
-            {
+
             SetAnimation();
             HandleGunControls();
-                time += Time.deltaTime;
-
+            HandlePlayerControls();
+            time += Time.deltaTime;
                 if(time>1f)
                 {
                     ik.Holding_gun = true;
+            ik.enabled = true;
                 }
-
-            }
-        }
-        private void FixedUpdate()
-        {
-        if(photonView.IsMine)
-            HandlePlayerControls();
+            
         }
 
 
-        void HandleGunControls()
+    void HandleGunControls()
+    {
+        if (guninventory.gun_new != null)
         {
             if (gun == null)
                 gun = guninventory.gun_new.GetComponent<GunScript>();
@@ -126,32 +93,21 @@ using Photon.Pun;
             {
                 Aim = true;
             }
-            else if(Input.GetMouseButtonUp(1))
+            else if (Input.GetMouseButtonUp(1))
             {
                 Aim = false;
             }
-        if (Input.GetMouseButton(0))
-        {
-            Shoot = true;
-        }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            Shoot = false;
-        }
-
-            if(Input.GetKeyDown(KeyCode.R)||gun.bulletsInTheGun==0)
+            if (Input.GetMouseButton(0))
             {
-                gun.Reload();
-                CharacterAnimator.SetTrigger("Reload");
-                ik.Holding_gun = false;
-                time = 0f;
+                Shoot = true;
             }
-
-
+            else if (Input.GetMouseButtonUp(0))
+            {
+                Shoot = false;
+            }
             gun.shooting = Shoot;
-
-
         }
+    }
     void HandlePlayerControls()
     {
         float hInput = Input.GetAxisRaw(HorizontalInput);
@@ -237,18 +193,6 @@ using Photon.Pun;
             CharacterAnimator.SetFloat("Crouch_speed", dummy);
 
         }
-public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-{
-    if (stream.IsWriting)
-    {
-        stream.SendNext(transform.position);
-        stream.SendNext(transform.rotation);
-    }
-    else
-    {
-        position = (Vector3)stream.ReceiveNext();
-        rotation = (Quaternion)stream.ReceiveNext();
-    }
-}
+
 
 }

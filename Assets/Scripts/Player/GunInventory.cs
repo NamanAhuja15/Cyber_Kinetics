@@ -3,24 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
-public class GunInventory : MonoBehaviourPunCallbacks
-{
+public class GunInventory : MonoBehaviourPunCallbacks { 
     public int index;
+    private int clone;
     public GameObject[] guns;
-    public GameObject gun_new;
+    public GameObject gun_new=null;
     private Animator animator;
     public Transform gun_pos;
     public GameObject selected_gun;
     public Image crosshair;
+    private PlayerHealth player;
     private float time;
     void Start()
     {
         time = 0f;
         index = 0;
-        selected_gun = guns[index];
         animator = GetComponent<Animator>();
-        crosshair = transform.GetComponentInChildren<Image>();
-        SpawnGun();
+        player = GetComponent<PlayerHealth>();
+        crosshair = player.crosshair;
     }
 
     // Update is called once per frame
@@ -29,47 +29,62 @@ public class GunInventory : MonoBehaviourPunCallbacks
         if (time > 0.5f)
         {
             photonView.RPC("ChangeGun", RpcTarget.All); 
-            selected_gun = guns[index];
-      
         }
-        time += Time.deltaTime;
+        time += Time.deltaTime; 
     }
+
     [PunRPC]
     void ChangeGun()
     {
-        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetAxis("Mouse ScrollWheel") > 0)
+        if (photonView.IsMine)
         {
-            time = 0f;
+            if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetAxis("Mouse ScrollWheel") > 0)
+            {
+                time = 0f;
                 index++;
                 animator.SetTrigger("Switch");
-         
-            if (index > guns.Length - 1)
-                index = 0;
-            Destroy(gun_new);
-            SpawnGun();
-        }
-        if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetAxis("Mouse ScrollWheel") < 0)
-        {
-            time = 0f;
-            if (index - 1 >= 0)
-            {
-                index--;
-                animator.SetTrigger("Switch");
-                Destroy(gun_new);
-                SpawnGun();
+
+                if (index > guns.Length - 1)
+                    index = 0;
+                selected_gun = guns[index];
+
+                PhotonNetwork.Destroy(gun_new);
+                photonView.RPC("SpawnGun", RpcTarget.All);
             }
-            else
-                index = 0;
+            if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetAxis("Mouse ScrollWheel") < 0)
+            {
+                time = 0f;
+                if (index - 1 >= 0)
+                {
+                    index--;
+                    animator.SetTrigger("Switch");
+                    selected_gun = guns[index];
+
+                    PhotonNetwork.Destroy(gun_new);
+                    photonView.RPC("SpawnGun", RpcTarget.All);
+                }
+                else
+                    index = 0;
+            }
+            if (gun_new == null)
+            {
+                selected_gun = guns[index];
+                photonView.RPC("SpawnGun", RpcTarget.All);
+            }
         }
     }
+
     [PunRPC]
     void SpawnGun()
     {
-        if (selected_gun.GetComponent<GunScript>())
-        {
-            var gun= PhotonNetwork.Instantiate(selected_gun.name,gun_pos.position, gun_pos.rotation, 0);
+        gun_pos.gameObject.tag = "Gun_Pos";
+            var gun= PhotonNetwork.Instantiate(selected_gun.name,gun_pos.position, gun_pos.rotation,0);
             gun.transform.parent = gun_pos;
+          gun.GetComponent<GunScript>().crosshair = crosshair;
+          gun.GetComponent<GunScript>().gun_pos = gun_pos;
             gun_new = gun;
-        }
+
     }
+
+
 }

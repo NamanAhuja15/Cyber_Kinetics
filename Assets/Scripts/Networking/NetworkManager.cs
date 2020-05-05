@@ -33,7 +33,8 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     private InputField messagesLog;
     [SerializeField]
     private Camera[] RenderCameras;
-
+    [SerializeField]
+    private GameObject crosshair;
     private GameObject player;
     private Queue<string> messages;
     private const int messageCount = 10;
@@ -79,6 +80,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     public override void OnJoinedLobby()
     {
         serverWindow.SetActive(true);
+        SelectionWindow.SetActive(true);
         foreach(Camera cam in RenderCameras)
         {
             cam.enabled = true;
@@ -129,7 +131,8 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     public override void OnJoinedRoom()
     {
         connectionText.text = "";
-        SelectionWindow.SetActive(true);
+        
+        Respawn(0f);
     }
 
     /// <summary>
@@ -138,7 +141,6 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     /// <param name="spawnTime">Time waited before spawn a player.</param>
    public void Respawn(float spawnTime)
     {
-  
         StartCoroutine(RespawnCoroutine(spawnTime));
         foreach (Camera cam in RenderCameras)
         {
@@ -155,13 +157,14 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     {
         yield return new WaitForSeconds(spawnTime);
         messageWindow.SetActive(true);
-        SelectionWindow.SetActive(false);
         int spawnIndex = Random.Range(0, spawnPoints.Length);
         player = PhotonNetwork.Instantiate(playerModel[playerIndex].name, spawnPoints[spawnIndex].position, spawnPoints[spawnIndex].rotation, 0);
         PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
         playerHealth.RespawnEvent += Respawn;
         playerHealth.AddMessageEvent += AddMessage;
+        playerHealth.crosshair = crosshair.GetComponent<Image>();
         sceneCamera.enabled = false;
+        crosshair.SetActive(true);
         if (spawnTime == 0)
         {
             AddMessage("Player " + PhotonNetwork.LocalPlayer.NickName + " Joined Game.");
@@ -214,24 +217,25 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     {
         playerIndex = 0;
         RenderCameras[playerIndex].GetComponent<Lobby>().Animate();
-        Respawn(5.0f);
+        SelectionWindow.SetActive(false);
     }   
     public void SelectPlayer2()
     {
         playerIndex = 1;
         RenderCameras[playerIndex].GetComponent<Lobby>().Animate();
-        Respawn(5.0f);
+        SelectionWindow.SetActive(false);
     }
     public void SelectPlayer3()
     {
         playerIndex = 2;
         RenderCameras[playerIndex].GetComponent<Lobby>().Animate();
-        Respawn(5.0f);
+        SelectionWindow.SetActive(false);
     }
    public void SelectPlayer4()
     {
         playerIndex = 3;
         RenderCameras[playerIndex].GetComponent<Lobby>().Animate();
-        Respawn(5.0f);
+        SelectionWindow.SetActive(false);
     }
+
 }
