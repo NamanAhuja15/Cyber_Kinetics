@@ -35,6 +35,7 @@ public class DoorAnimation : MonoBehaviour {
     /// that is touching the trigger.
     /// </summary>
     /// <param name="other">The other Collider involved in this collision.</param>
+    
     void OnTriggerStay(Collider other) {
         if (other.gameObject.tag == "Player") {
             animator.SetBool("Trigger", true);

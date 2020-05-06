@@ -13,18 +13,17 @@ public class Crosshair :  MonoBehaviourPunCallbacks,IPunObservable
     [SerializeField]
     private GameObject cam;
     private Vector3 offset;
+    private Vector3 localPosition;
     private Vector3 position;
-    private Quaternion rotation;
     void Start()
     {
         player = GetComponentInParent<PlayerHealth>();
-        cam = player.gameObject.GetComponentInChildren<PlayerCamera>().gameObject;
+      //  cam = player.gameObject.GetComponentInChildren<PlayerCamera>().gameObject;
         if (photonView.IsMine)
         {
             crosshair = player.crosshair;
         }
-        transform.parent = cam.transform;
-        offset = cam.transform.position - transform.position;
+
     }
 
     // Update is called once per frame
@@ -44,10 +43,10 @@ public class Crosshair :  MonoBehaviourPunCallbacks,IPunObservable
                 }
             }
         }
-        else
+        else if(!photonView.IsMine)
         {
-            transform.localRotation = rotation;
-            transform.localPosition = position;
+            transform.localPosition = localPosition;
+            transform.position = position;
         }
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -55,12 +54,12 @@ public class Crosshair :  MonoBehaviourPunCallbacks,IPunObservable
         if (stream.IsWriting)
         {
             stream.SendNext(transform.localPosition);
-            stream.SendNext(transform.localRotation);
+            stream.SendNext(transform.position);
         }
         else
         {
+            localPosition = (Vector3)stream.ReceiveNext();
             position = (Vector3)stream.ReceiveNext();
-            rotation = (Quaternion)stream.ReceiveNext();
         }
     }
 }

@@ -4,9 +4,7 @@ using UnityEngine.UI;
 
 public class NameTag : MonoBehaviourPunCallbacks {
 
-    [HideInInspector]
-    public Transform target = null;
-
+  
     [SerializeField]
     private Text nameText;
 
@@ -14,7 +12,12 @@ public class NameTag : MonoBehaviourPunCallbacks {
     /// Start is called on the frame when a script is enabled just before
     /// any of the Update methods is called the first time.
     /// </summary>
+    private void Awake()
+    {
+        
+    }
     void Start() {
+
         if (photonView.IsMine) {
            photonView.RPC("SetName", RpcTarget.All, PhotonNetwork.NickName);
         } else {
@@ -26,10 +29,6 @@ public class NameTag : MonoBehaviourPunCallbacks {
     /// Update is called every frame, if the MonoBehaviour is enabled.
     /// </summary>
     void Update() {
-        if (target != null) {
-            Vector3 lookAtVec = transform.position + (transform.position - target.position);
-            transform.LookAt(lookAtVec, Vector3.up);
-        }
     }
 
     /// <summary>

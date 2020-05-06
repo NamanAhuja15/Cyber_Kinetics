@@ -7,14 +7,24 @@
 
 using UnityEngine;
 using System.Collections;
-
-public class TimedObjectDestroyer : MonoBehaviour
+using Photon.Pun;
+public class TimedObjectDestroyer : MonoBehaviourPunCallbacks
 {
 	public float lifeTime = 10.0f;
 
 	// Use this for initialization
 	void Start()
 	{
-		Destroy(gameObject, lifeTime);
+
+		Invoke("DestroyObject", lifeTime);
+	}
+	void DestroyObject()
+	{
+		photonView.RPC("DestroyRPC", RpcTarget.All);
+	}
+	[PunRPC]
+	 public void DestroyRPC()
+	{
+		PhotonNetwork.Destroy(gameObject);
 	}
 }

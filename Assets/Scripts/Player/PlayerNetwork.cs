@@ -60,30 +60,12 @@ public class PlayerNetwork : MonoBehaviourPunCallbacks, IPunObservable
         {
             GetComponent<PlayerMovement>().enabled = true;
             MoveToLayer(this.gameObject, 9);
-            
-            // Set other player's nametag target to this player's nametag transform.
-            GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-            foreach (GameObject player in players)
-            {
-                player.GetComponentInChildren<NameTag>().target = nameTag.transform;
-            }
         }
         else
         {
             position = transform.position;
             rotation = transform.rotation;
-
             MoveToLayer(this.gameObject, 8);
-            // Set this player's nametag target to other players's target.
-            GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-            foreach (GameObject player in players)
-            {
-                if (player != gameObject)
-                {
-                    nameTag.target = player.GetComponentInChildren<NameTag>().target;
-                    break;
-                }
-            }
         }
     }
 

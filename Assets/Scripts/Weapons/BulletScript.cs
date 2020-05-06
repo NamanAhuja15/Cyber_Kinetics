@@ -34,8 +34,10 @@ public class BulletScript :MonoBehaviour  {
 				case "Player":
 					{
 						PhotonNetwork.Instantiate(bloodEffects[Random.Range(0,bloodEffects.Length-1)].name, hit.point, Quaternion.LookRotation(hit.normal));
-						if(hit.transform.gameObject.layer!=LayerMask.GetMask("Player"))
-					hit.transform.gameObject.GetComponent<PhotonView>().RPC("TakeDamage", RpcTarget.All, damage, PhotonNetwork.LocalPlayer.NickName);
+						if (hit.transform.gameObject.layer != LayerMask.GetMask("Player"))
+						{
+							hit.transform.gameObject.GetComponent<PhotonView>().RPC("TakeDamage", RpcTarget.All, damage, PhotonNetwork.LocalPlayer.NickName);
+						}
 						Destroy(gameObject);
 						break;
 					}

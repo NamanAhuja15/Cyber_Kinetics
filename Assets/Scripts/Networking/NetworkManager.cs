@@ -61,6 +61,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     /// </summary>
     public override void OnConnectedToMaster()
     {
+        
         PhotonNetwork.JoinLobby();
     }
 
@@ -80,7 +81,6 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     public override void OnJoinedLobby()
     {
         serverWindow.SetActive(true);
-        SelectionWindow.SetActive(true);
         foreach(Camera cam in RenderCameras)
         {
             cam.enabled = true;
@@ -167,11 +167,11 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         crosshair.SetActive(true);
         if (spawnTime == 0)
         {
-            AddMessage("Player " + PhotonNetwork.LocalPlayer.NickName + " Joined Game.");
+            AddMessage("Player " + PhotonNetwork.LocalPlayer.NickName + "has entered the arena");
         }
         else
         {
-            AddMessage("Player " + PhotonNetwork.LocalPlayer.NickName + " Respawned.");
+            AddMessage("Player " + PhotonNetwork.LocalPlayer.NickName + "Respawned");
         }
     }
 
@@ -210,7 +210,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            AddMessage("Player " + other.NickName + " Left Game.");
+            AddMessage("Player " + other.NickName + " is a coward,he left the game.");
         }
     }
     public void SelectPlayer1()
@@ -231,11 +231,4 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         RenderCameras[playerIndex].GetComponent<Lobby>().Animate();
         SelectionWindow.SetActive(false);
     }
-   public void SelectPlayer4()
-    {
-        playerIndex = 3;
-        RenderCameras[playerIndex].GetComponent<Lobby>().Animate();
-        SelectionWindow.SetActive(false);
-    }
-
 }
