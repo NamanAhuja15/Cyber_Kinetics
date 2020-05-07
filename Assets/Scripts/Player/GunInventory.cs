@@ -79,11 +79,7 @@ public class GunInventory : MonoBehaviourPunCallbacks {
     {
         gun_pos.gameObject.tag = "Gun_Pos";
             var gun= PhotonNetwork.Instantiate(selected_gun.name,gun_pos.position, gun_pos.rotation,0);
-            gun.transform.parent = gun_pos;
-          gun.GetComponent<GunScript>().crosshair = crosshair;
-          gun.GetComponent<GunScript>().gun_pos = gun_pos;
             gun_new = gun;
-
     }
 
 

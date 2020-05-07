@@ -2,7 +2,7 @@
 using System.Collections;
 using Photon.Pun;
 
-public class BulletScript :MonoBehaviour  {
+public class BulletScript :MonoBehaviourPunCallbacks  {
 
 
 
@@ -11,12 +11,12 @@ public class BulletScript :MonoBehaviour  {
 
 	public float floatInfrontOfWall;
 	public int damage;
-	public string Shooter;
 	public GameObject[] hitEffects;
 	public GameObject[] bloodEffects;
 	public LayerMask ignoreLayer;
 	public Vector3 direction;
 	public float maxDistance;
+	private float time;
 	/*
 	* Uppon bullet creation with this script attatched,
 	* bullet creates a raycast which searches for corresponding tags.
@@ -24,34 +24,37 @@ public class BulletScript :MonoBehaviour  {
 	*/
 	void Start()
 	{
+		time = 0f;
 	}
 	void Update () {
-		
+		time += Time.deltaTime;
 		if (Physics.Raycast(transform.position, direction,out hit, maxDistance, LayerMask.GetMask("Shootable"))){
 			string hit_tag = hit.transform.gameObject.tag;
 			switch (hit_tag)
 			{
 				case "Player":
 					{
-						PhotonNetwork.Instantiate(bloodEffects[Random.Range(0,bloodEffects.Length-1)].name, hit.point, Quaternion.LookRotation(hit.normal));
+						
 						if (hit.transform.gameObject.layer != LayerMask.GetMask("Player"))
 						{
+							Instantiate(bloodEffects[0], hit.point + hit.normal * floatInfrontOfWall, Quaternion.LookRotation(hit.normal));
 							hit.transform.gameObject.GetComponent<PhotonView>().RPC("TakeDamage", RpcTarget.All, damage, PhotonNetwork.LocalPlayer.NickName);
 						}
-						Destroy(gameObject);
+						Destroy(this.gameObject);
 						break;
 					}
 				default:
 					if (decalHitWall)
 					{
-							Instantiate(decalHitWall, hit.point + hit.normal * floatInfrontOfWall, Quaternion.LookRotation(hit.normal));
-						Destroy(gameObject);
+						Instantiate(decalHitWall, hit.point + hit.normal * floatInfrontOfWall, Quaternion.LookRotation(hit.normal));
+					Destroy(this.gameObject);
 					}
 					break;
 			}		
 		
 		}
-		Destroy(gameObject, 5f);
+		if (time > 5f)
+			Destroy(this.gameObject);
 	}
 
 

@@ -167,11 +167,11 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         crosshair.SetActive(true);
         if (spawnTime == 0)
         {
-            AddMessage("Player " + PhotonNetwork.LocalPlayer.NickName + "has entered the arena");
+            AddMessage("Player " + PhotonNetwork.LocalPlayer.NickName + " has entered the arena");
         }
         else
         {
-            AddMessage("Player " + PhotonNetwork.LocalPlayer.NickName + "Respawned");
+            AddMessage("Player " + PhotonNetwork.LocalPlayer.NickName + " Respawned");
         }
     }
 

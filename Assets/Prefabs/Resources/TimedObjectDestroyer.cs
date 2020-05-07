@@ -10,21 +10,23 @@ using System.Collections;
 using Photon.Pun;
 public class TimedObjectDestroyer : MonoBehaviourPunCallbacks
 {
-	public float lifeTime = 10.0f;
+	public float lifeTime;
 
 	// Use this for initialization
 	void Start()
 	{
-
-		Invoke("DestroyObject", lifeTime);
+		Destroy(this.gameObject, lifeTime);
 	}
-	void DestroyObject()
+	/*void DestroyObject()
 	{
-		photonView.RPC("DestroyRPC", RpcTarget.All);
+		if (this.gameObject.TryGetComponent<PhotonView>(out var photonView))
+			photonView.RPC("DestroyRPC", RpcTarget.All);
+		else
+			Destroy(this.gameObject);
 	}
 	[PunRPC]
 	 public void DestroyRPC()
 	{
 		PhotonNetwork.Destroy(gameObject);
-	}
+	}*/
 }

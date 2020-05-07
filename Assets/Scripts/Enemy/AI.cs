@@ -7,7 +7,9 @@ public class AI : MonoBehaviour
 {
     public bool Awake = false;
     public NavMeshAgent nav;
-    public Transform player,lastposition;
+    public Transform lastposition;
+    private Transform player;
+    private AIManager manager;
     public float range,fieldofviewangle,hearingdistance;
     public bool detected = false;
     private TaskManager taskmanager;
@@ -27,13 +29,15 @@ public class AI : MonoBehaviour
         taskmanager = this.gameObject.GetComponent<TaskManager>();
         colli = this.gameObject.GetComponent<SphereCollider>();
         lastposition = null;
+        manager = GameObject.FindGameObjectWithTag("AIManager").GetComponent<AIManager>();
     }
 
     // Update is called once per frame
     void Update()
     {
-            PlayerinRange();
+        PlayerinRange();
         Hear();
+        
         if (insight)
         {
             taskmanager.CreateFollow(this, player, nav);

@@ -27,11 +27,14 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
     private Animator animator;
     private IKControl ikControl;
     private Slider healthSlider;
+    private GameObject Screen;
     private Image damageImage;
     private int currentHealth;
     private bool isDead;
     private bool damaged;
-    public Image crosshair;
+    public Image crosshair,weapon_img;
+    private Text gun_name, ammo, reloadtext,inGun,capacity;
+    public GunScript gun;
 
     /// <summary>
     /// Start is called on the frame when a script is enabled just before
@@ -39,36 +42,67 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
     /// </summary>
     void Start()
     {
-        ikControl = GetComponent<IKControl>();
-        damageImage = GameObject.FindGameObjectWithTag("Screen").transform.Find("DamageImage").GetComponent<Image>();
-        crosshair = GameObject.FindGameObjectWithTag("Screen").transform.Find("Crosshair").GetComponent<Image>();
-        healthSlider = GameObject.FindGameObjectWithTag("Screen").GetComponentInChildren<Slider>();
-        animator = GetComponent<Animator>();
-        playerAudio = GetComponent<AudioManager>();
         currentHealth = startingHealth;
-        if (photonView.IsMine)
-        {
-            healthSlider.value = currentHealth;
-            healthSlider.GetComponentInChildren<Text>().text = currentHealth.ToString() + "/100";
-        }
-        damaged = false;
+        Screen = GameObject.FindGameObjectWithTag("Screen");
+        SetUI();
+        animator = GetComponent<Animator>();
+        ikControl = GetComponent<IKControl>();
+        playerAudio = GetComponent<AudioManager>();
         isDead = false;
     }
 
     /// <summary>
     /// Update is called every frame, if the MonoBehaviour is enabled.
     /// </summary>
+    void SetUI()
+    {
+        if (photonView.IsMine)
+        {
+            crosshair = Screen.transform.Find("Crosshair").GetComponent<Image>();
+            healthSlider = Screen.GetComponentInChildren<Slider>();
+            gun_name = Screen.transform.Find("GunName").GetComponent<Text>();
+            ammo = Screen.transform.Find("Ammo").GetComponent<Text>();
+            reloadtext = Screen.transform.Find("ReloadText").GetComponent<Text>();
+            weapon_img = Screen.transform.Find("GunImage").GetComponent<Image>();
+            inGun = Screen.transform.Find("InGun").GetComponent<Text>();
+            capacity = Screen.transform.Find("Capacity").GetComponent<Text>();
+            healthSlider.value = currentHealth;
+            healthSlider.GetComponentInChildren<Text>().text = currentHealth.ToString() + "/100";
+        }
+    }
     void Update()
     {
-        if (damaged)
+        if (gun != null && photonView.IsMine)
         {
-            damaged = false;
-            damageImage.color = flashColour;
+            weapon_img.enabled = true;
+            weapon_img.sprite = gun.Icon;
+            gun_name.text = gun.Gun_Name;
+            if (gun.weapon == GunScript.WeaponType.Rifle)
+            {
+                ammo.text = gun.bulletsInTheGun.ToString() + " / " + gun.total_bullets.ToString();
+                inGun.text = "Bullets";
+                capacity.text = "Capacity";
+                reloadtext.text = "Reloading bullets";
+                if (gun.reloading)
+                    reloadtext.enabled = true;
+                else
+                    reloadtext.enabled = false;
+            }
+            else if (gun.weapon == GunScript.WeaponType.Beam)
+            {
+                int heat = (int)gun.beamHeat;
+                ammo.text = heat.ToString() + " / " + gun.maxBeamHeat.ToString();
+                inGun.text = "Heat";
+                capacity.text = "MaxHeat";
+                reloadtext.text = "Cooling Down";
+                if (gun.coolingDown)
+                    reloadtext.enabled = true;
+                else
+                    reloadtext.enabled = false;
+            }
         }
         else
-        {
-            damageImage.color = Color.Lerp(damageImage.color, Color.clear, flashSpeed * Time.deltaTime);
-        }
+            weapon_img.enabled = false;
     }
 
     /// <summary>
@@ -80,9 +114,8 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
     public void TakeDamage(int amount, string enemyName)
     {
         if (isDead) return;
-        if (photonView.IsMine)
+        if (photonView.IsMine&&gun.owner!=enemyName)
         {
-            damaged = true;
             currentHealth -= amount;
             if (currentHealth <= 0)
             {

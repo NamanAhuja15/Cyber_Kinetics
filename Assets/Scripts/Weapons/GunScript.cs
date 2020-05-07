@@ -6,11 +6,17 @@ using Photon.Pun;
 using Photon;
 public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 {
-	//IK position variables
-    public Transform muzzle, LeftHand,RightHand,LeftElbow,RightElbow,LookObj;
 
+
+	public string Gun_Name;
+	public string owner;
+	public Sprite Icon;
 	public enum WeaponType { Beam,Rifle}
 	public WeaponType weapon;
+
+	//IK position variables
+	public Transform muzzle, LeftHand, RightHand, LeftElbow, RightElbow, LookObj;
+
 	//Rifle variables
 	public float roundsPerSecond, bulletsInTheGun, bulletImpulse, magazine_size,total_bullets;
 	public GameObject bullet;
@@ -25,45 +31,46 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 	public bool reloading;
 	public GameObject[] muzzleEffects;
 	public GameObject[] hitEffects;
+	public GameObject bloodEffect;
 	public GameObject flash;
 	public GameObject beamGO;
 	public float  maxBeamHeat,range,maxReflections;
-	private float beamHeat;
+	public float beamHeat;
 	public Transform lookat;
 	public Material beamMaterial;
 	public Color beamColor = Color.red;
-	private bool coolingDown,beaming;
+	public bool coolingDown;
+	private bool beaming;
 	public float startBeamWidth = 0.5f;             
 	public float endBeamWidth = 1.0f;
 	public Transform raycastStartSpot;
 
-	private string Shooter;
 	private GunAudio gunAudio;
 	private GunInventory inventory;
-	public Transform gun_pos;
+	private PlayerHealth player_Owner;
+	private Transform gun_pos;
 	private Vector3 position;
 	private Quaternion rotation;
 	private float smoothing = 10.0f;
 	private float time = 0f;
-	private GameObject gun_Position;
+	public GameObject gun_Position;
+
 	void Start()
     {
-			gun_Position = GameObject.FindGameObjectWithTag("Gun_Pos");
-			gun_pos = gun_Position.transform;
-			SetParent();
-
-
+		gun_Position = GameObject.FindGameObjectWithTag("Gun_Pos");
+		gun_pos = gun_Position.transform;
+		SetParent();
+		player_Owner = GetComponentInParent<PlayerHealth>();
+		player_Owner.gun = GetComponent<GunScript>();
+		owner = photonView.Owner.NickName;
 		reloading = false;
 		shooting = false;
 		flash.SetActive(false);
-		inventory = GetComponentInParent<GunInventory>();
-		if (inventory.gun_new == null)
-			inventory.gun_new = this.gameObject;
 		if (photonView.IsMine)
 		{
-			crosshair = GameObject.FindGameObjectWithTag("Crosshair").GetComponent<Image>();
+			//crosshair = GameObject.FindGameObjectWithTag("Crosshair").GetComponent<Image>();
+			crosshair = player_Owner.crosshair;
 		}
-	//	crosshair = inventory.crosshair;
 		gunAudio = GetComponent<GunAudio>();
 		raycastStartSpot = muzzle;
 	}
@@ -108,7 +115,7 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 			transform.LookAt(lookat);
 			if (Input.GetMouseButton(0))
 			{
-				photonView.RPC("RPC_Shooting", RpcTarget.All);
+				photonView.RPC("RPC_Shooting",RpcTarget.All);
 			}
 			if (crosshair != null)
 			{
@@ -123,6 +130,20 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 						hit_dir = ray.GetPoint(100);
 				}
 			}
+			if(weapon==WeaponType.Beam)
+				if(beamHeat>=maxBeamHeat&&time>1f)
+				{
+					gunAudio.Reload();
+					time = 0f;
+				}
+			if(weapon==WeaponType.Rifle && bulletsInTheGun<=0||Input.GetKeyDown(KeyCode.R))
+			{
+				reloading = true;
+				Reload();
+				time = 0f;
+			}
+			if (time > 1f)
+				reloading = false;
 		}
 	}
 
@@ -130,26 +151,25 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 	void RPC_Shooting()
 	{
 
-		if (weapon == WeaponType.Rifle)
+		if (weapon == WeaponType.Rifle&&!reloading)
 		{
 			RifleShootMethod();
-
-		
 			waitTillNextFire -= roundsPerSecond * Time.deltaTime;
 		}
-		else if (weapon == WeaponType.Beam && beamHeat <= maxBeamHeat && !coolingDown)
+		else if (weapon == WeaponType.Beam)
 		{
 
-			BeamShootMethod();
-			
 			if (beamHeat >= maxBeamHeat)
 			{
 				coolingDown = true;
+				StopBeam();
 			}
-			else if (beamHeat <= maxBeamHeat - (maxBeamHeat / 2))
+			if (beamHeat <= 50)
 			{
 				coolingDown = false;
 			}
+			if(beamHeat<=maxBeamHeat&&!coolingDown)
+			BeamShootMethod();
 		}
 
 		if (Input.GetMouseButtonUp(0))
@@ -189,15 +209,13 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 				if (bullet)
 				{
 					gunAudio.Fire();
-					GameObject bullet_ = Instantiate(bullet, muzzle.transform.position, muzzle.transform.rotation) as GameObject;
+					GameObject bullet_ =Instantiate(bullet, muzzle.transform.position, muzzle.transform.rotation) as GameObject;
 					Rigidbody bulletRigidbody = bullet_.GetComponent<Rigidbody>();
 					Vector3 direction = hit_dir - muzzle.transform.position ;
 					bullet_.GetComponent<BulletScript>().direction = direction;
-					bullet_.GetComponent<BulletScript>().Shooter=Shooter;
 					bulletRigidbody.AddForce(direction * bulletImpulse, ForceMode.Impulse);
 					waitTillNextFire = 1;
-					bulletsInTheGun -= 1;
-					
+					bulletsInTheGun -= 1;	
 				}
 				else
 					print("Missing the bullet prefab");
@@ -210,7 +228,7 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 	public void BeamShootMethod()
 	{
 		gunAudio.Fire();
-		beamHeat += Time.deltaTime;
+		beamHeat += Time.deltaTime*10f;
 		int reflections = 0;
 		List<Vector3> reflectionPoints = new List<Vector3>();
 		reflectionPoints.Add(raycastStartSpot.position);
@@ -246,7 +264,13 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 				foreach (GameObject hitEffect in hitEffects)
 				{
 					if (hitEffect != null)
-					PhotonNetwork.Instantiate(hitEffect.name, beamhit.point, Quaternion.FromToRotation(Vector3.up, beamhit.normal));
+				Instantiate(hitEffect, beamhit.point, Quaternion.FromToRotation(Vector3.up, beamhit.normal));
+				}
+				if (beamhit.transform.gameObject.layer != LayerMask.GetMask("Player")&& beamhit.transform.gameObject.tag=="Player"&&time>0.2f)
+				{
+					beamhit.transform.gameObject.GetComponent<PhotonView>().RPC("TakeDamage", RpcTarget.Others, 2, PhotonNetwork.LocalPlayer.NickName);
+					Instantiate(bloodEffect, beamhit.point + beamhit.normal * 0.1f, Quaternion.LookRotation(beamhit.normal));
+					time = 0f;
 				}
 				reflections++;
 			}
@@ -267,7 +291,7 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 				GameObject muzfx = muzzleEffects[Random.Range(0, muzzleEffects.Length)];
 				if (muzfx != null)
 				{
-					PhotonNetwork.Instantiate(muzfx.name, reflectionPoints[i], muzzle.rotation);
+					Instantiate(muzfx, reflectionPoints[i], muzzle.rotation);
 				}
 			}
 
@@ -275,7 +299,7 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 		GameObject muzfx_ = muzzleEffects[Random.Range(0, muzzleEffects.Length)];
 		if (muzfx_ != null)
 		{
-			GameObject mfxGO = PhotonNetwork.Instantiate(muzfx_.name, muzzle.position, muzzle.rotation) as GameObject;
+			GameObject mfxGO = Instantiate(muzfx_, muzzle.position, muzzle.rotation) as GameObject;
 			mfxGO.transform.parent = raycastStartSpot;
 		}
 		beaming = true;
@@ -283,7 +307,7 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 	[PunRPC]
 	public void StopBeam()
 	{
-		beamHeat -= Time.deltaTime;
+		beamHeat -= Time.deltaTime*10f;
 		if (beamHeat < 0)
 			beamHeat = 0;
 	//	GetComponent<AudioSource>().Stop();
@@ -294,12 +318,22 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 		}
 
 	}
-	[PunRPC]
 	public void Reload()
 	{
 		gunAudio.Reload();
-		total_bullets -= magazine_size - bulletsInTheGun;
-		bulletsInTheGun = magazine_size;
+		if (bulletsInTheGun < magazine_size && total_bullets > 0)
+		{
+			if (total_bullets >= magazine_size)
+			{
+				total_bullets -= magazine_size - bulletsInTheGun;
+				bulletsInTheGun = magazine_size;
+			}
+			else
+			{
+				bulletsInTheGun = total_bullets;
+				total_bullets = 0f;
+			}
+		}
 	}
 
 
