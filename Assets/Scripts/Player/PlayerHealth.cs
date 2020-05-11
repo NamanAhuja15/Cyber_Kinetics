@@ -27,7 +27,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
     private Animator animator;
     private IKControl ikControl;
     private Slider healthSlider;
-    private GameObject Screen;
+    private GameObject Screen,Controls;
     private Image damageImage;
     private int currentHealth;
     private bool isDead;
@@ -49,6 +49,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
         ikControl = GetComponent<IKControl>();
         playerAudio = GetComponent<AudioManager>();
         isDead = false;
+        Cursor.visible = false;
     }
 
     /// <summary>
@@ -66,43 +67,60 @@ public class PlayerHealth : MonoBehaviourPunCallbacks, IPunObservable
             weapon_img = Screen.transform.Find("GunImage").GetComponent<Image>();
             inGun = Screen.transform.Find("InGun").GetComponent<Text>();
             capacity = Screen.transform.Find("Capacity").GetComponent<Text>();
+            Controls = Screen.transform.Find("Controls").gameObject;
             healthSlider.value = currentHealth;
             healthSlider.GetComponentInChildren<Text>().text = currentHealth.ToString() + "/100";
         }
     }
     void Update()
     {
-        if (gun != null && photonView.IsMine)
+        if (photonView.IsMine)
         {
-            weapon_img.enabled = true;
-            weapon_img.sprite = gun.Icon;
-            gun_name.text = gun.Gun_Name;
-            if (gun.weapon == GunScript.WeaponType.Rifle)
+            if (Input.GetKeyDown(KeyCode.Tab))
             {
-                ammo.text = gun.bulletsInTheGun.ToString() + " / " + gun.total_bullets.ToString();
-                inGun.text = "Bullets";
-                capacity.text = "Capacity";
-                reloadtext.text = "Reloading bullets";
-                if (gun.reloading)
-                    reloadtext.enabled = true;
+                if (Controls.activeInHierarchy)
+                {
+                    Controls.SetActive(false);
+                    Cursor.lockState = CursorLockMode.Locked;
+                }
                 else
-                    reloadtext.enabled = false;
+                {
+                    Controls.SetActive(true);
+                    Cursor.lockState = CursorLockMode.None;
+                }
             }
-            else if (gun.weapon == GunScript.WeaponType.Beam)
+            if (gun != null && photonView.IsMine)
             {
-                int heat = (int)gun.beamHeat;
-                ammo.text = heat.ToString() + " / " + gun.maxBeamHeat.ToString();
-                inGun.text = "Heat";
-                capacity.text = "MaxHeat";
-                reloadtext.text = "Cooling Down";
-                if (gun.coolingDown)
-                    reloadtext.enabled = true;
-                else
-                    reloadtext.enabled = false;
+                weapon_img.enabled = true;
+                weapon_img.sprite = gun.Icon;
+                gun_name.text = gun.Gun_Name;
+                if (gun.weapon == GunScript.WeaponType.Rifle)
+                {
+                    ammo.text = gun.bulletsInTheGun.ToString() + " / " + gun.total_bullets.ToString();
+                    inGun.text = "Bullets";
+                    capacity.text = "Capacity";
+                    reloadtext.text = "Reloading bullets";
+                    if (gun.reloading)
+                        reloadtext.enabled = true;
+                    else
+                        reloadtext.enabled = false;
+                }
+                else if (gun.weapon == GunScript.WeaponType.Beam)
+                {
+                    int heat = (int)gun.beamHeat;
+                    ammo.text = heat.ToString() + " / " + gun.maxBeamHeat.ToString();
+                    inGun.text = "Heat";
+                    capacity.text = "MaxHeat";
+                    reloadtext.text = "Cooling Down";
+                    if (gun.coolingDown)
+                        reloadtext.enabled = true;
+                    else
+                        reloadtext.enabled = false;
+                }
             }
+            else
+                weapon_img.enabled = false;
         }
-        else
-            weapon_img.enabled = false;
     }
 
     /// <summary>

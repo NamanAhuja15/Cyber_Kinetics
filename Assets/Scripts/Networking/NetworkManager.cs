@@ -32,6 +32,8 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     [SerializeField]
     private InputField messagesLog;
     [SerializeField]
+    private GameObject ControlsWindow;
+    [SerializeField]
     private Camera[] RenderCameras;
     [SerializeField]
     private GameObject crosshair;
@@ -108,6 +110,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     {
         serverWindow.SetActive(false);
         connectionText.text = "Joining room...";
+        ControlsWindow.SetActive(true);
         PhotonNetwork.LocalPlayer.NickName = username.text;
         PlayerPrefs.SetString(nickNamePrefKey, username.text);
         RoomOptions roomOptions = new RoomOptions()

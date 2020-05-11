@@ -104,7 +104,8 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 		}
 
 			time = +Time.deltaTime;
-
+		if (time > 1f)
+			reloading = false;
 		if (photonView.IsMine)
 		{
 			if (Input.GetMouseButtonUp(0))
@@ -130,20 +131,21 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 						hit_dir = ray.GetPoint(100);
 				}
 			}
-			if(weapon==WeaponType.Beam)
-				if(beamHeat>=maxBeamHeat&&time>1f)
+			if (weapon == WeaponType.Beam)
+			{
+				if (beamHeat >= maxBeamHeat && time > 1f)
 				{
 					gunAudio.Reload();
 					time = 0f;
 				}
+			}
 			if(weapon==WeaponType.Rifle && bulletsInTheGun<=0||Input.GetKeyDown(KeyCode.R))
 			{
 				reloading = true;
 				Reload();
 				time = 0f;
 			}
-			if (time > 1f)
-				reloading = false;
+			time += Time.deltaTime;
 		}
 	}
 
@@ -151,7 +153,7 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 	void RPC_Shooting()
 	{
 
-		if (weapon == WeaponType.Rifle&&!reloading)
+		if (weapon == WeaponType.Rifle)
 		{
 			RifleShootMethod();
 			waitTillNextFire -= roundsPerSecond * Time.deltaTime;
@@ -200,7 +202,7 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 	}
 	public void RifleShootMethod()
 	{
-		if (waitTillNextFire <= 0 && !reloading)
+		if (waitTillNextFire <= 0)
 		{
 
 			if (bulletsInTheGun > 0)
@@ -215,7 +217,8 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 					bullet_.GetComponent<BulletScript>().direction = direction;
 					bulletRigidbody.AddForce(direction * bulletImpulse, ForceMode.Impulse);
 					waitTillNextFire = 1;
-					bulletsInTheGun -= 1;	
+					bulletsInTheGun -= 1;
+					reloading = false;
 				}
 				else
 					print("Missing the bullet prefab");
@@ -266,7 +269,7 @@ public class GunScript : MonoBehaviourPunCallbacks,IPunObservable
 					if (hitEffect != null)
 				Instantiate(hitEffect, beamhit.point, Quaternion.FromToRotation(Vector3.up, beamhit.normal));
 				}
-				if (beamhit.transform.gameObject.layer != LayerMask.GetMask("Player")&& beamhit.transform.gameObject.tag=="Player"&&time>0.2f)
+				if (beamhit.transform.gameObject.layer != LayerMask.GetMask("Player")&& beamhit.transform.gameObject.tag=="Player")
 				{
 					beamhit.transform.gameObject.GetComponent<PhotonView>().RPC("TakeDamage", RpcTarget.Others, 2, PhotonNetwork.LocalPlayer.NickName);
 					Instantiate(bloodEffect, beamhit.point + beamhit.normal * 0.1f, Quaternion.LookRotation(beamhit.normal));
